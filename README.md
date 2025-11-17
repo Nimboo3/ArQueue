@@ -1,6 +1,6 @@
-# WorkQueue (TypeScript minimal)
+# ArQueue 
 
-Two services and a tiny dashboard.
+Services:
 
 - Producer: `POST /enqueue` to push tasks into Redis (`queue:pending`) with validation and rate limiting.
 - Worker: Reliable dequeue with `BRPOPLPUSH`, retries with exponential backoff + jitter via `queue:delayed`, DLQ, `/metrics`, `/dead_letter`, and serves dashboard.
