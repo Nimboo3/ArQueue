@@ -1,0 +1,47 @@
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Logs & runtime artifacts
+*.log
+logs/
+**/logs/
+
+# Coverage & test output
+coverage/
+.nyc_output/
+
+# Editor / IDE settings (optional; keep if team agrees)
+.vscode/
+.idea/
+
+# OS / misc
+.DS_Store
+Thumbs.db
+
+# Redis dump (if created locally)
+dump.rdb
+
+# Ignore Go build artifacts if present in parent repo
+*.exe
+*.out
+*.test
+
+# Previous incorrect folder names (consumer) retained for safety
+/consumer/
+
+# Do NOT ignore lock files (package-lock.json / pnpm-lock.yaml / yarn.lock) to preserve reproducible installs
