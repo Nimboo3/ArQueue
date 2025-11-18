@@ -1,41 +1,71 @@
-# ArQueue 
+# ArQueue (TypeScript) — Distributed Task Queue
 
-Services:
+This is a  Redis-backed task queue implemented in TypeScript.
+It demonstrates real-world async patterns:
+reliable dequeue, retries with exponential backoff + jitter, delayed queue,
+dead-letter queue (DLQ), crash recovery, structured logging, and concurrency.
 
-- Producer: `POST /enqueue` to push tasks into Redis (`queue:pending`) with validation and rate limiting.
-- Worker: Reliable dequeue with `BRPOPLPUSH`, retries with exponential backoff + jitter via `queue:delayed`, DLQ, `/metrics`, `/dead_letter`, and serves dashboard.
 
-## Prerequisites
-- Node.js 20+
-- Redis running (default `redis://127.0.0.1:6379/0`).
+---
 
-## Quick start (Windows cmd)
-```cmd
-:: Producer
-cd ts\producer
+## Key features
+
+- Producer service: `POST /enqueue` accepts validated tasks and enqueues them.
+- Workers: multiple concurrent worker loops per process (configurable via `WORKER_CONCURRENCY`) consume tasks.
+- Reliable dequeue: uses `BRPOPLPUSH` from `queue:pending` to `queue:processing`.
+- Per-task metadata stored in Redis hash: `task:<id>` stores `data`, `retries`, `startedAt`, `status`, etc.
+  - This avoids unsafe `LSET` updates on list elements and helps recovery.
+- Retry strategy: exponential backoff with jitter; delayed scheduling via `ZADD queue:delayed`.
+- Dead-letter queue: exhausted tasks -> `queue:dead_letter`.
+- Recovery scan: periodically scans `queue:processing` and uses task hash `startedAt` to decide stale tasks.
+- Concurrency: `WORKER_CONCURRENCY` worker loops per process; horizontally scale by running multiple processes/containers.
+- Observability: structured logs (Pino) and `/metrics` endpoint with aggregated counters (stored in Redis).
+- Graceful shutdown: short BRPOP timeout + running flag + wait for loops to exit; clean Redis disconnect.
+- Basic protections: rate-limiter on producer, request-id propagation, body size limits, Redis reconnect handlers.
+
+---
+
+## Quick start (local)
+
+1. Create `.env` (or copy `.env.example`):
+
+```env
+REDIS_URL=redis://localhost:6379/0
+
+PORT_PRODUCER=8080
+PORT_WORKER=8081
+
+WORKER_CONCURRENCY=3
+WORKER_MAX_RETRIES=3
+
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=120
+
+2. Start Redis (local or Docker). For quick local test:
+
+docker run --rm -p 6379:6379 redis:7-alpine
+
+
+3. Install & start producer and worker (example using two shells):
+
+# root of project
+cd producer
 npm install
-copy ..\.env.example .env
+npm run dev   # or npm start after build
+
+cd ../worker
+npm install
 npm run dev
 
-:: Worker (new terminal)
-cd ts\worker
-npm install
-copy ..\.env.example .env
-npm run dev
-```
 
-## Enqueue examples
-```cmd
-curl -X POST http://localhost:8080/enqueue ^
-  -H "Content-Type: application/json" ^
-  -d "{\"type\":\"send_email\",\"payload\":{\"to\":\"user@example.com\",\"subject\":\"Hello\"}}"
+4. Enqueue a task:
 
-curl -X POST http://localhost:8080/enqueue ^
-  -H "Content-Type: application/json" ^
-  -d "{\"type\":\"unknown_task\",\"payload\":{}}"
-```
+curl -X POST http://localhost:8080/enqueue \
+  -H "Content-Type: application/json" \
+  -d '{"type":"send_email","payload":{"to":"user@example.com","subject":"hi"}}'
 
-## Inspect
-- Metrics: `http://localhost:8081/metrics`
-- Dead Letter: `http://localhost:8081/dead_letter?limit=20`
-- Dashboard: open `http://localhost:8081/` in a browser
+
+5. Check worker metrics:
+
+GET http://localhost:8081/metrics
+GET http://localhost:8081/dead_letter
