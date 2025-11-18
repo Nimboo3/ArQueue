@@ -1,12 +1,16 @@
 import dotenv from 'dotenv';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import express from 'express';
 import { logger } from './logger.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
+// Resolve __dirname in ESM and load .env from local and repo-level fallback
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: false });
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379/0';
 const PORT = Number(process.env.PORT_WORKER || 8081);
@@ -186,8 +190,6 @@ app.get('/dead_letter', async (req, res) => {
 
 // Serve dashboard
 try {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
   const dashboardDir = path.resolve(__dirname, '../../dashboard');
   app.use(express.static(dashboardDir));
   logger.info({ dashboardDir }, 'Serving dashboard');

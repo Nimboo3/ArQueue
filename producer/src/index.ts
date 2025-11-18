@@ -1,12 +1,18 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { logger } from './logger.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
+// ESM __dirname and layered .env loading: local first, then ts/.env fallback
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: false });
 
 const app = express();
 // Limit body size to avoid oversized payloads
