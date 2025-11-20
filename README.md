@@ -7,7 +7,7 @@ dead-letter queue (DLQ), crash recovery, structured logging, and concurrency.
 
 <img width="2608" height="783" alt="queue" src="https://github.com/user-attachments/assets/37627f0c-6ea6-4692-8553-46eabb05b52b" />
 
----
+--
 
 ## Key features
 
@@ -24,7 +24,7 @@ dead-letter queue (DLQ), crash recovery, structured logging, and concurrency.
 - Graceful shutdown: short BRPOP timeout + running flag + wait for loops to exit; clean Redis disconnect.
 - Basic protections: rate-limiter on producer, request-id propagation, body size limits, Redis reconnect handlers.
 
----
+--
 
 ## Quick start (local)
 
