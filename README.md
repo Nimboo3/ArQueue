@@ -1,10 +1,11 @@
-# ArQueue (TypeScript) — Distributed Task Queue
+# ArQueue - Distributed Task Queue
 
 This is a  Redis-backed task queue implemented in TypeScript.
 It demonstrates real-world async patterns:
 reliable dequeue, retries with exponential backoff + jitter, delayed queue,
 dead-letter queue (DLQ), crash recovery, structured logging, and concurrency.
 
+<img width="2608" height="783" alt="queue" src="https://github.com/user-attachments/assets/37627f0c-6ea6-4692-8553-46eabb05b52b" />
 
 ---
 
